@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'auth_page.dart';
+import '../../../dashboard/presentation/pages/dashboard_page.dart';
 import '../../../../core/services/location_service.dart';
+import '../../../../core/services/auth_service.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -9,7 +11,8 @@ class SplashScreen extends StatefulWidget {
   State<SplashScreen> createState() => _SplashScreenState();
 }
 
-class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderStateMixin {
+class _SplashScreenState extends State<SplashScreen>
+    with SingleTickerProviderStateMixin {
   late AnimationController _controller;
   late Animation<double> _fadeAnimation;
   late Animation<double> _scaleAnimation;
@@ -23,11 +26,17 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
     );
 
     _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
-      CurvedAnimation(parent: _controller, curve: const Interval(0.0, 0.5, curve: Curves.easeIn)),
+      CurvedAnimation(
+        parent: _controller,
+        curve: const Interval(0.0, 0.5, curve: Curves.easeIn),
+      ),
     );
 
     _scaleAnimation = Tween<double>(begin: 0.8, end: 1.0).animate(
-      CurvedAnimation(parent: _controller, curve: const Interval(0.0, 0.5, curve: Curves.easeOutBack)),
+      CurvedAnimation(
+        parent: _controller,
+        curve: const Interval(0.0, 0.5, curve: Curves.easeOutBack),
+      ),
     );
 
     _controller.forward();
@@ -35,13 +44,24 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
     // Request location permission on launch
     _initPermissions();
 
-    Future.delayed(const Duration(seconds: 3), () {
-      if (mounted) {
-        Navigator.of(context).pushReplacement(
-          MaterialPageRoute(builder: (context) => const AuthPage()),
-        );
-      }
-    });
+    _navigateToNext();
+  }
+
+  Future<void> _navigateToNext() async {
+    await Future.delayed(const Duration(seconds: 3));
+
+    if (!mounted) return;
+
+    final loggedIn = await AuthService.isLoggedIn();
+
+    if (mounted) {
+      Navigator.of(context).pushReplacement(
+        MaterialPageRoute(
+          builder: (context) =>
+              loggedIn ? const DashboardPage() : const AuthPage(),
+        ),
+      );
+    }
   }
 
   Future<void> _initPermissions() async {
@@ -75,7 +95,9 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
                       decoration: BoxDecoration(
                         borderRadius: BorderRadius.circular(32),
                         image: const DecorationImage(
-                          image: AssetImage('assets/images/lotted_care_logo_premium.png'),
+                          image: AssetImage(
+                            'assets/images/lotted_care_logo_premium.png',
+                          ),
                           fit: BoxFit.cover,
                         ),
                         boxShadow: [
@@ -98,11 +120,11 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
                       ),
                     ),
                     const SizedBox(height: 8),
-                    Text(
+                    const Text(
                       'Wellness Simplified',
                       style: TextStyle(
                         fontSize: 16,
-                        color: Colors.grey[400],
+                        color: Colors.grey,
                         letterSpacing: 2,
                       ),
                     ),

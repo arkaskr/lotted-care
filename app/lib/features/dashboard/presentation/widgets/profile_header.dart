@@ -26,11 +26,12 @@ class ProfileHeader extends StatelessWidget {
                 height: 100,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  border: Border.all(color: const Color(0xFFF1C40F).withOpacity(0.3), width: 4),
-                  image: const DecorationImage(
-                    image: NetworkImage('https://i.pravatar.cc/300'), // Placeholder avatar
-                    fit: BoxFit.cover,
-                  ),
+                  border: Border.all(color: Colors.white, width: 2),
+                ),
+                child: const CircleAvatar(
+                  radius: 20,
+                  backgroundColor: Color(0xFFE8F8F5),
+                  child: Icon(Icons.person, color: Color(0xFF2ECC71), size: 24),
                 ),
               ),
               Container(
