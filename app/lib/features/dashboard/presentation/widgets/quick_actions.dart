@@ -1,7 +1,13 @@
 import 'package:flutter/material.dart';
+import '../../../symptom_checker/presentation/pages/symptom_selection_page.dart';
 
 class QuickActions extends StatelessWidget {
-  const QuickActions({super.key});
+  final VoidCallback? onFindClinicTap;
+
+  const QuickActions({
+    super.key,
+    this.onFindClinicTap,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -23,6 +29,12 @@ class QuickActions extends StatelessWidget {
           subtitle: 'AI-powered health assessment',
           iconColor: Colors.orange,
           backgroundColor: const Color(0xFFFEF5E7),
+          onTap: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (_) => const SymptomSelectionPage()),
+            );
+          },
         ),
         const SizedBox(height: 12),
         _buildActionItem(
@@ -31,6 +43,7 @@ class QuickActions extends StatelessWidget {
           subtitle: 'Locate specialists near you',
           iconColor: Colors.green,
           backgroundColor: const Color(0xFFE8F8F5),
+          onTap: onFindClinicTap,
         ),
       ],
     );
@@ -42,9 +55,12 @@ class QuickActions extends StatelessWidget {
     required String subtitle,
     required Color iconColor,
     required Color backgroundColor,
+    VoidCallback? onTap,
   }) {
-    return Container(
-      padding: const EdgeInsets.all(16),
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(24),
@@ -92,6 +108,8 @@ class QuickActions extends StatelessWidget {
           const Icon(Icons.chevron_right, color: Colors.grey),
         ],
       ),
+      ),
     );
   }
 }
+

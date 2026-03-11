@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'core/app_theme.dart';
 import 'features/dashboard/presentation/pages/dashboard_page.dart';
 
+import 'features/auth/presentation/pages/splash_screen.dart';
+
 void main() {
   runApp(const LottedCareApp());
 }
@@ -15,7 +17,7 @@ class LottedCareApp extends StatelessWidget {
       title: 'Lotted Care',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.light,
-      home: const DashboardPage(),
+      home: const SplashScreen(),
     );
   }
 }
