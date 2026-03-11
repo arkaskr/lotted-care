@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'core/app_theme.dart';
 import 'features/dashboard/presentation/pages/dashboard_page.dart';
-
+import 'features/auth/presentation/pages/auth_page.dart';
 import 'features/auth/presentation/pages/splash_screen.dart';
 
-void main() {
+Future<void> main() async {
+  await dotenv.load(fileName: ".env");
   runApp(const LottedCareApp());
 }
 
@@ -17,7 +19,12 @@ class LottedCareApp extends StatelessWidget {
       title: 'Lotted Care',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.light,
-      home: const SplashScreen(),
+      initialRoute: '/',
+      routes: {
+        '/': (context) => const SplashScreen(),
+        '/auth': (context) => const AuthPage(),
+        '/dashboard': (context) => const DashboardPage(),
+      },
     );
   }
 }

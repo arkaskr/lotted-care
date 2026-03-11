@@ -16,20 +16,23 @@ class _ExploreViewState extends State<ExploreView> {
   Position? _currentPosition;
 
   static const CameraPosition _initialPosition = CameraPosition(
-    target: LatLng(0, 0),
-    zoom: 2,
+    target: LatLng(
+      23.6850,
+      90.3563,
+    ), // Default to a central location (e.g., Dhaka)
+    zoom: 12,
   );
 
   final Set<Marker> _markers = {
     Marker(
       markerId: const MarkerId('city_general'),
-      position: const LatLng(37.7898, -122.4082),
+      position: const LatLng(23.7509, 90.3935),
       infoWindow: const InfoWindow(title: 'City General Hospital'),
       icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueGreen),
     ),
     Marker(
       markerId: const MarkerId('mercy_clinic'),
-      position: const LatLng(37.7694, -122.4363),
+      position: const LatLng(23.7915, 90.4045),
       infoWindow: const InfoWindow(title: 'Mercy Clinic'),
       icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueGreen),
     ),
@@ -62,6 +65,8 @@ class _ExploreViewState extends State<ExploreView> {
 ]
 ''';
 
+  bool _isMapLoading = true;
+
   @override
   void initState() {
     super.initState();
@@ -69,17 +74,21 @@ class _ExploreViewState extends State<ExploreView> {
   }
 
   Future<void> _getCurrentLocation() async {
-    final position = await LocationService.getCurrentLocation();
-    if (position != null) {
-      setState(() {
-        _currentPosition = position;
-      });
-      _mapController?.animateCamera(
-        CameraUpdate.newLatLngZoom(
-          LatLng(position.latitude, position.longitude),
-          14.0,
-        ),
-      );
+    try {
+      final position = await LocationService.getCurrentLocation();
+      if (position != null) {
+        setState(() {
+          _currentPosition = position;
+        });
+        _mapController?.animateCamera(
+          CameraUpdate.newLatLngZoom(
+            LatLng(position.latitude, position.longitude),
+            14.0,
+          ),
+        );
+      }
+    } catch (e) {
+      debugPrint('Error getting location: $e');
     }
   }
 
@@ -93,10 +102,16 @@ class _ExploreViewState extends State<ExploreView> {
           onMapCreated: (controller) {
             _mapController = controller;
             _mapController?.setMapStyle(_mapStyle);
+            setState(() {
+              _isMapLoading = false;
+            });
             if (_currentPosition != null) {
               _mapController?.animateCamera(
                 CameraUpdate.newLatLngZoom(
-                  LatLng(_currentPosition!.latitude, _currentPosition!.longitude),
+                  LatLng(
+                    _currentPosition!.latitude,
+                    _currentPosition!.longitude,
+                  ),
                   14.0,
                 ),
               );
@@ -108,7 +123,15 @@ class _ExploreViewState extends State<ExploreView> {
           zoomControlsEnabled: false,
           mapType: MapType.normal,
         ),
-        
+
+        if (_isMapLoading)
+          Container(
+            color: Colors.white,
+            child: const Center(
+              child: CircularProgressIndicator(color: Color(0xFF2ECC71)),
+            ),
+          ),
+
         // Filter Bar (Semi-transparent background for better map visibility)
         Positioned(
           top: 20,
@@ -217,7 +240,12 @@ class _ExploreViewState extends State<ExploreView> {
     );
   }
 
-  Widget _buildFilterChip(String label, bool hasIcon, {bool isSelected = false, bool isDropdown = false}) {
+  Widget _buildFilterChip(
+    String label,
+    bool hasIcon, {
+    bool isSelected = false,
+    bool isDropdown = false,
+  }) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
       decoration: BoxDecoration(
@@ -238,10 +266,14 @@ class _ExploreViewState extends State<ExploreView> {
           ),
           if (isDropdown) ...[
             const SizedBox(width: 8),
-            Icon(Icons.keyboard_arrow_down, size: 18, color: isSelected ? Colors.white : const Color(0xFF0D1B2A)),
+            Icon(
+              Icons.keyboard_arrow_down,
+              size: 18,
+              color: isSelected ? Colors.white : const Color(0xFF0D1B2A),
+            ),
           ] else if (isSelected) ...[
-             const SizedBox(width: 8),
-             const Icon(Icons.check, size: 18, color: Colors.white),
+            const SizedBox(width: 8),
+            const Icon(Icons.check, size: 18, color: Colors.white),
           ],
         ],
       ),
@@ -279,7 +311,9 @@ class _ExploreViewState extends State<ExploreView> {
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(16),
                 image: const DecorationImage(
-                  image: NetworkImage('https://images.unsplash.com/photo-1519494026892-80bbd2d6fd0d?w=200&h=200&fit=crop'),
+                  image: NetworkImage(
+                    'https://images.unsplash.com/photo-1519494026892-80bbd2d6fd0d?w=200&h=200&fit=crop',
+                  ),
                   fit: BoxFit.cover,
                 ),
               ),
@@ -301,7 +335,11 @@ class _ExploreViewState extends State<ExploreView> {
                   const SizedBox(height: 4),
                   Row(
                     children: [
-                      const Icon(Icons.star_rounded, color: Colors.amber, size: 20),
+                      const Icon(
+                        Icons.star_rounded,
+                        color: Colors.amber,
+                        size: 20,
+                      ),
                       const SizedBox(width: 4),
                       Text(
                         rating,
@@ -318,7 +356,10 @@ class _ExploreViewState extends State<ExploreView> {
                   Row(
                     children: [
                       Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 8,
+                          vertical: 4,
+                        ),
                         decoration: BoxDecoration(
                           color: const Color(0xFFE8F8F5),
                           borderRadius: BorderRadius.circular(8),

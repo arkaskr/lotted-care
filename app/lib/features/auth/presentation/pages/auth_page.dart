@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../dashboard/presentation/pages/dashboard_page.dart';
+import '../../../../core/services/auth_service.dart';
 
 class AuthPage extends StatefulWidget {
   const AuthPage({super.key});
@@ -9,10 +10,16 @@ class AuthPage extends StatefulWidget {
   State<AuthPage> createState() => _AuthPageState();
 }
 
-class _AuthPageState extends State<AuthPage> with SingleTickerProviderStateMixin {
+class _AuthPageState extends State<AuthPage>
+    with SingleTickerProviderStateMixin {
   late TabController _tabController;
   bool _rememberMe = false;
   bool _obscurePassword = true;
+  bool _isLoading = false;
+
+  final TextEditingController _nameController = TextEditingController();
+  final TextEditingController _emailController = TextEditingController();
+  final TextEditingController _passwordController = TextEditingController();
 
   @override
   void initState() {
@@ -28,7 +35,52 @@ class _AuthPageState extends State<AuthPage> with SingleTickerProviderStateMixin
   @override
   void dispose() {
     _tabController.dispose();
+    _nameController.dispose();
+    _emailController.dispose();
+    _passwordController.dispose();
     super.dispose();
+  }
+
+  Future<void> _handleAuth() async {
+    final name = _nameController.text.trim();
+    final email = _emailController.text.trim();
+    final password = _passwordController.text.trim();
+
+    if (email.isEmpty || password.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please fill in all required fields')),
+      );
+      return;
+    }
+
+    setState(() => _isLoading = true);
+
+    try {
+      if (_tabController.index == 0) {
+        // Login
+        await AuthService.login(email, password);
+      } else {
+        // Register
+        if (name.isEmpty) {
+          throw Exception('Please enter your full name');
+        }
+        await AuthService.register(name, email, password);
+      }
+
+      if (mounted) {
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute(builder: (context) => const DashboardPage()),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(e.toString().replaceAll('Exception: ', ''))),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
+    }
   }
 
   @override
@@ -110,9 +162,9 @@ class _AuthPageState extends State<AuthPage> with SingleTickerProviderStateMixin
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    isLogin 
-                      ? 'Your unified health management companion'
-                      : 'Join us and start your health journey today',
+                    isLogin
+                        ? 'Your unified health management companion'
+                        : 'Join us and start your health journey today',
                     textAlign: TextAlign.center,
                     style: TextStyle(
                       fontSize: 14,
@@ -147,7 +199,10 @@ class _AuthPageState extends State<AuthPage> with SingleTickerProviderStateMixin
                       ),
                       labelColor: const Color(0xFF0D1B2A),
                       unselectedLabelColor: const Color(0xFF5D6D7E),
-                      labelStyle: const TextStyle(fontWeight: FontWeight.w800, fontSize: 14),
+                      labelStyle: const TextStyle(
+                        fontWeight: FontWeight.w800,
+                        fontSize: 14,
+                      ),
                       tabs: const [
                         Tab(text: 'Login'),
                         Tab(text: 'Register'),
@@ -164,6 +219,7 @@ class _AuthPageState extends State<AuthPage> with SingleTickerProviderStateMixin
                       children: [
                         if (!isLogin) ...[
                           _buildModernField(
+                            controller: _nameController,
                             label: 'Full Name',
                             hint: 'John Doe',
                             icon: Icons.person_outline_rounded,
@@ -171,18 +227,22 @@ class _AuthPageState extends State<AuthPage> with SingleTickerProviderStateMixin
                           const SizedBox(height: 16),
                         ],
                         _buildModernField(
+                          controller: _emailController,
                           label: 'Email Address',
                           hint: 'name@example.com',
                           icon: Icons.alternate_email_rounded,
                         ),
                         const SizedBox(height: 16),
                         _buildModernField(
+                          controller: _passwordController,
                           label: 'Password',
                           hint: 'Your password',
                           icon: Icons.lock_outline_rounded,
                           isPassword: true,
                           obscureText: _obscurePassword,
-                          onSuffixTap: () => setState(() => _obscurePassword = !_obscurePassword),
+                          onSuffixTap: () => setState(
+                            () => _obscurePassword = !_obscurePassword,
+                          ),
                         ),
                       ],
                     ),
@@ -195,7 +255,8 @@ class _AuthPageState extends State<AuthPage> with SingleTickerProviderStateMixin
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         GestureDetector(
-                          onTap: () => setState(() => _rememberMe = !_rememberMe),
+                          onTap: () =>
+                              setState(() => _rememberMe = !_rememberMe),
                           child: Row(
                             children: [
                               AnimatedContainer(
@@ -203,21 +264,33 @@ class _AuthPageState extends State<AuthPage> with SingleTickerProviderStateMixin
                                 width: 18,
                                 height: 18,
                                 decoration: BoxDecoration(
-                                  color: _rememberMe ? const Color(0xFF2ECC71) : Colors.transparent,
+                                  color: _rememberMe
+                                      ? const Color(0xFF2ECC71)
+                                      : Colors.transparent,
                                   borderRadius: BorderRadius.circular(5),
                                   border: Border.all(
-                                    color: _rememberMe ? const Color(0xFF2ECC71) : const Color(0xFFD5DBDB),
+                                    color: _rememberMe
+                                        ? const Color(0xFF2ECC71)
+                                        : const Color(0xFFD5DBDB),
                                     width: 2,
                                   ),
                                 ),
                                 child: _rememberMe
-                                    ? const Icon(Icons.check, size: 12, color: Colors.white)
+                                    ? const Icon(
+                                        Icons.check,
+                                        size: 12,
+                                        color: Colors.white,
+                                      )
                                     : null,
                               ),
                               const SizedBox(width: 8),
                               const Text(
                                 'Remember me',
-                                style: TextStyle(color: Color(0xFF5D6D7E), fontSize: 13, fontWeight: FontWeight.w500),
+                                style: TextStyle(
+                                  color: Color(0xFF5D6D7E),
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w500,
+                                ),
                               ),
                             ],
                           ),
@@ -236,7 +309,7 @@ class _AuthPageState extends State<AuthPage> with SingleTickerProviderStateMixin
                         ),
                       ],
                     ),
-                  
+
                   const SizedBox(height: 24),
 
                   // Primary Button (Login / Register)
@@ -259,21 +332,31 @@ class _AuthPageState extends State<AuthPage> with SingleTickerProviderStateMixin
                       ],
                     ),
                     child: ElevatedButton(
-                      onPressed: () {
-                        Navigator.of(context).pushReplacement(
-                          MaterialPageRoute(builder: (context) => const DashboardPage()),
-                        );
-                      },
+                      onPressed: _isLoading ? null : _handleAuth,
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.transparent,
                         foregroundColor: Colors.white,
                         shadowColor: Colors.transparent,
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(29)),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(29),
+                        ),
                       ),
-                      child: Text(
-                        isLogin ? 'Sign In' : 'Create Account',
-                        style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w800),
-                      ),
+                      child: _isLoading
+                          ? const SizedBox(
+                              width: 24,
+                              height: 24,
+                              child: CircularProgressIndicator(
+                                color: Colors.white,
+                                strokeWidth: 3,
+                              ),
+                            )
+                          : Text(
+                              isLogin ? 'Sign In' : 'Create Account',
+                              style: const TextStyle(
+                                fontSize: 17,
+                                fontWeight: FontWeight.w800,
+                              ),
+                            ),
                     ),
                   ),
                   const SizedBox(height: 24),
@@ -281,22 +364,36 @@ class _AuthPageState extends State<AuthPage> with SingleTickerProviderStateMixin
                   // Divider
                   Row(
                     children: [
-                      Expanded(child: Divider(color: const Color(0xFFD5DBDB), thickness: 1)),
+                      Expanded(
+                        child: Divider(
+                          color: const Color(0xFFD5DBDB),
+                          thickness: 1,
+                        ),
+                      ),
                       const Padding(
                         padding: EdgeInsets.symmetric(horizontal: 16),
                         child: Text(
                           'OR',
-                          style: TextStyle(color: Color(0xFFAEB6BF), fontSize: 11, fontWeight: FontWeight.w700),
+                          style: TextStyle(
+                            color: Color(0xFFAEB6BF),
+                            fontSize: 11,
+                            fontWeight: FontWeight.w700,
+                          ),
                         ),
                       ),
-                      Expanded(child: Divider(color: const Color(0xFFD5DBDB), thickness: 1)),
+                      Expanded(
+                        child: Divider(
+                          color: const Color(0xFFD5DBDB),
+                          thickness: 1,
+                        ),
+                      ),
                     ],
                   ),
                   const SizedBox(height: 24),
 
                   // Google Login Button
                   _buildGoogleButton(),
-                  
+
                   const SizedBox(height: 48),
                 ],
               ),
@@ -308,6 +405,7 @@ class _AuthPageState extends State<AuthPage> with SingleTickerProviderStateMixin
   }
 
   Widget _buildModernField({
+    required TextEditingController controller,
     required String label,
     required String hint,
     required IconData icon,
@@ -342,16 +440,23 @@ class _AuthPageState extends State<AuthPage> with SingleTickerProviderStateMixin
             ],
           ),
           child: TextFormField(
+            controller: controller,
             obscureText: obscureText,
             style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 15),
             decoration: InputDecoration(
               hintText: hint,
-              hintStyle: const TextStyle(color: Color(0xFFAEB6BF), fontWeight: FontWeight.normal, fontSize: 14),
+              hintStyle: const TextStyle(
+                color: Color(0xFFAEB6BF),
+                fontWeight: FontWeight.normal,
+                fontSize: 14,
+              ),
               prefixIcon: Icon(icon, color: const Color(0xFF2ECC71), size: 20),
               suffixIcon: isPassword
                   ? IconButton(
                       icon: Icon(
-                        obscureText ? Icons.visibility_off_outlined : Icons.visibility_outlined,
+                        obscureText
+                            ? Icons.visibility_off_outlined
+                            : Icons.visibility_outlined,
                         color: const Color(0xFFAEB6BF),
                         size: 20,
                       ),
@@ -367,7 +472,10 @@ class _AuthPageState extends State<AuthPage> with SingleTickerProviderStateMixin
               ),
               focusedBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(16),
-                borderSide: const BorderSide(color: Color(0xFF2ECC71), width: 1.5),
+                borderSide: const BorderSide(
+                  color: Color(0xFF2ECC71),
+                  width: 1.5,
+                ),
               ),
             ),
           ),
@@ -398,7 +506,11 @@ class _AuthPageState extends State<AuthPage> with SingleTickerProviderStateMixin
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Icon(Icons.g_mobiledata_rounded, color: Colors.blue, size: 32),
+            const Icon(
+              Icons.g_mobiledata_rounded,
+              color: Colors.blue,
+              size: 32,
+            ),
             const SizedBox(width: 8),
             const Text(
               'Continue with Google',

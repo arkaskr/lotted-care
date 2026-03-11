@@ -1,13 +1,11 @@
 import 'package:flutter/material.dart';
 import '../../../symptom_checker/presentation/pages/symptom_selection_page.dart';
+import '../../../health/presentation/pages/create_session_page.dart';
 
 class QuickActions extends StatelessWidget {
   final VoidCallback? onFindClinicTap;
 
-  const QuickActions({
-    super.key,
-    this.onFindClinicTap,
-  });
+  const QuickActions({super.key, this.onFindClinicTap});
 
   @override
   Widget build(BuildContext context) {
@@ -23,6 +21,20 @@ class QuickActions extends StatelessWidget {
           ),
         ),
         const SizedBox(height: 16),
+        _buildActionItem(
+          icon: Icons.calendar_today_rounded,
+          title: 'Plan Session',
+          subtitle: 'Create activities & work blocks',
+          iconColor: Colors.blue,
+          backgroundColor: const Color(0xFFEBF5FB),
+          onTap: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (_) => const CreateSessionPage()),
+            );
+          },
+        ),
+        const SizedBox(height: 12),
         _buildActionItem(
           icon: Icons.medical_services,
           title: 'Check Symptoms',
@@ -61,55 +73,51 @@ class QuickActions extends StatelessWidget {
       onTap: onTap,
       child: Container(
         padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(24),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.03),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: Row(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              color: backgroundColor,
-              shape: BoxShape.circle,
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(24),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.03),
+              blurRadius: 10,
+              offset: const Offset(0, 4),
             ),
-            child: Icon(icon, color: iconColor, size: 24),
-          ),
-          const SizedBox(width: 16),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  title,
-                  style: const TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                    color: Color(0xFF0D1B2A),
-                  ),
-                ),
-                Text(
-                  subtitle,
-                  style: const TextStyle(
-                    fontSize: 12,
-                    color: Colors.grey,
-                  ),
-                ),
-              ],
+          ],
+        ),
+        child: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: backgroundColor,
+                shape: BoxShape.circle,
+              ),
+              child: Icon(icon, color: iconColor, size: 24),
             ),
-          ),
-          const Icon(Icons.chevron_right, color: Colors.grey),
-        ],
-      ),
+            const SizedBox(width: 16),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                      color: Color(0xFF0D1B2A),
+                    ),
+                  ),
+                  Text(
+                    subtitle,
+                    style: const TextStyle(fontSize: 12, color: Colors.grey),
+                  ),
+                ],
+              ),
+            ),
+            const Icon(Icons.chevron_right, color: Colors.grey),
+          ],
+        ),
       ),
     );
   }
 }
-
